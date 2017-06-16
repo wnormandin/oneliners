@@ -4,3 +4,6 @@ dt () { read tm; result=$(date +%s -d "$tm"); echo $result;}; start=$(echo "1 da
 # Find files for all users under a certain reseller (cpanel/WHM servers only) where
 # modified and changed times are not identical
 get_users () { echo "$(grep "$1" /etc/trueuserowners | cut -d: -f1)"; }; check_modified () { if [ $# != 1 ]; then echo "A reseller/owner is required, usage: check_modified <username>"; exit 1; fi; reseller=$1; echo "Report for owner <<$reseller>>"; usr_count=$(get_users $reseller | wc -l); echo "Users: $usr_count"; if [ $usr_count -lt 1 ]; then echo "No users"; exit 1; fi; while IFS= read -r user; do homedir=$(getent passwd "$user" | cut -d: -f6); out_list=$(find "$homedir" -type f -name *.php -o -name *.js -exec stat -c %n#%Y#%Z {} \; | awk -F# '{if ($2 != $3) print $1}'); out_str="\n<<User $user>>\nHomeDir: $homedir\nFiles with modified/changed date discrepancies:\n$out_list"; echo -e "$out_str"; done < <(get_users "$reseller"); }; check_modified <reseller/owner>
+
+# List the specified columns for all processes and sort them in increasing order by the % of CPU usage.
+ps -e -o user,tname,ppid,pid,psr,pri,ni,%cpu,%mem,rss,vsz,size,state,start,time,etime,command --sort %cpu | head
